@@ -88,22 +88,25 @@ test('should have navigator series for highstock', function(assert) {
 test('should update data on all svg paths on highstock chart', function(assert) {
   assert.expect(1);
 
-  const generateDArray = () => {
-    return this.$('.highcharts-series').map((series) => $(series).find('path').attr('d'));
-  };
-
-  this.set('stockData', stockData);
   this.set('stockChartOptions', stockChartOptions);
 
   this.render(hbs`
     {{high-charts mode="StockChart" content=stockData chartOptions=stockChartOptions}}
   `);
 
+  const highchartSeries = this.$('.highcharts-series');
+  const generateDArray = () => {
+    return highchartSeries.map((i) => {
+      const series = highchartSeries[i];
+      return $(series).find('path').attr('d');
+    });
+  };
+
+  Ember.run(() => this.set('stockData', stockData));
   const dVals = generateDArray();
 
-  this.set('stockData', updatedStockData);
-
+  Ember.run(() => this.set('stockData', updatedStockData));
   const newDVals = generateDArray();
 
-  assert.notEqual(dVals, newDVals);
+  assert.notDeepEqual(dVals, newDVals);
 });
