@@ -49,7 +49,8 @@ export default Component.extend({
       noData.remove();
     }
 
-    let numToRemove = chart.series.length - get(this, 'content').length;
+    const nonNavigatorSeries = chart.series.filter((item) => (item.name !== 'Navigator'));
+    let numToRemove = nonNavigatorSeries.length - get(this, 'content').length;
 
     for (let i = numToRemove; i > 0; i--) {
 
