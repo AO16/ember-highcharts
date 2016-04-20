@@ -89,24 +89,24 @@ test('should update data on all svg paths on highstock chart', function(assert) 
   assert.expect(1);
 
   this.set('stockChartOptions', stockChartOptions);
+  this.set('stockData', stockData);
 
   this.render(hbs`
     {{high-charts mode="StockChart" content=stockData chartOptions=stockChartOptions}}
   `);
 
-  const highchartSeries = this.$('.highcharts-series');
   const generateDArray = () => {
+    const highchartSeries = this.$('.highcharts-series');
     return highchartSeries.map((i) => {
       const series = highchartSeries[i];
       return $(series).find('path').attr('d');
     });
   };
 
-  Ember.run(() => this.set('stockData', stockData));
   const dVals = generateDArray();
 
-  Ember.run(() => this.set('stockData', updatedStockData));
+  this.set('stockData', updatedStockData);
   const newDVals = generateDArray();
 
-  assert.notDeepEqual(dVals, newDVals);
+  assert.notEqual(dVals[1], newDVals[1]);
 });

@@ -7,11 +7,12 @@ const {
   computed,
   get,
   set,
-  merge,
   on,
   run,
   $
 } = Ember;
+
+const assign = Ember.assign || Ember.merge;
 
 export default Component.extend({
   classNames: ['highcharts-wrapper'],
@@ -32,47 +33,39 @@ export default Component.extend({
 
     let defaults = { series: chartContent };
 
-    return merge(defaults, chartOptions);
+    return assign(defaults, chartOptions);
   }),
 
   didReceiveAttrs() {
     this._super(...arguments);
 
-    if (!(get(this, 'content') && get(this, 'chart'))) {
-      return;
-    }
+    const { content, chart, mode } = this.getProperties('content', 'chart', 'mode');
+    if (!content || !chart) return;
 
-    let chart = get(this, 'chart');
     let noData = chart.get('noData');
+    if (noData != null) noData.remove();
 
-    if (noData != null) {
-      noData.remove();
-    }
+    // remove and update current series
+    chart.series.forEach((series) => {
+      if (series.name === 'Navigator' && mode === 'StockChart') return;
 
-    const nonNavigatorSeries = chart.series.filter((item) => (item.name !== 'Navigator'));
-    let numToRemove = nonNavigatorSeries.length - get(this, 'content').length;
+      const contentSeriesArray = content.filter((contentSeries) => (series.name === contentSeries.name));
+      if (contentSeriesArray.length === 0) return series.remove(false);
 
-    for (let i = numToRemove; i > 0; i--) {
-
-      let lastIndex = chart.series.length - 1;
-
-      if (chart.series[lastIndex]) {
-        chart.series[lastIndex].remove(false);
-      }
-
-    }
-
-    get(this, 'content').forEach((series, idx) => {
-
-      if (chart.series[idx]) {
-        return chart.series[idx].setData(series.data, false);
-      } else {
-        return chart.addSeries(series, false);
-      }
+      series.setData(contentSeriesArray[0].data, false, false, false);
     });
 
-    return chart.redraw();
+    // add new series
+    content.forEach((contentSeries) => {
+      const chartSeriesArray = chart.series.filter((series) => (series.name === contentSeries.name));
+      if (chartSeriesArray.length > 0) return;
+      chart.addSeries(contentSeries, false);
+    });
 
+    // reset navigator data
+    if (chart.xAxis.length > 0) chart.xAxis[0].setExtremes();
+
+    return chart.redraw();
   },
 
   drawAfterRender() {
