@@ -5,7 +5,15 @@ module.exports = function(defaults) {
   var app = new EmberApp(defaults, {
     emberHighCharts: {
       includeHighCharts: false,
-      includeHighStock: true
+      includeHighStock: true,
+      includeHighChartsMore: true,
+      includeModules: [
+        'map',
+        'drilldown',
+        'solid-gauge',
+        'funnel',
+        'heatmap'
+      ]
     }
   });
 

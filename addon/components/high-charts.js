@@ -40,30 +40,57 @@ export default Component.extend({
     this._super(...arguments);
 
     const { content, chart, mode } = this.getProperties('content', 'chart', 'mode');
-    if (!content || !chart) return;
+    if (!content || !chart) {
+      return;
+    }
 
-    let noData = chart.get('noData');
-    if (noData != null) noData.remove();
+    const isStockChart = mode === 'StockChart';
+
+
+    // create maps to make series data easier to work with
+    const contentSeriesMap = content.reduce((contentSeriesMap, contentSeries) => {
+      contentSeriesMap[contentSeries.name] = contentSeries;
+      return contentSeriesMap;
+    }, {});
+
+    const chartSeriesMap = chart.series.reduce((chartSeriesMap, chartSeries) => {
+      chartSeriesMap[chartSeries.name] = chartSeries;
+      return chartSeriesMap;
+    }, {});
+
 
     // remove and update current series
+    const chartSeriesToRemove = [];
+
     chart.series.forEach((series) => {
-      if (series.name === 'Navigator' && mode === 'StockChart') return;
+      if (isStockChart && series.name === 'Navigator') {
+        return;
+      }
 
-      const contentSeriesArray = content.filter((contentSeries) => (series.name === contentSeries.name));
-      if (contentSeriesArray.length === 0) return series.remove(false);
+      const contentSeries = contentSeriesMap[series.name];
 
-      series.setData(contentSeriesArray[0].data, false, false, false);
+      if (!contentSeries) {
+        return chartSeriesToRemove.push(series);
+      }
+
+      series.setData(contentSeries.data, false);
     });
+
+    chartSeriesToRemove.forEach((series) => series.remove(false));
+
 
     // add new series
     content.forEach((contentSeries) => {
-      const chartSeriesArray = chart.series.filter((series) => (series.name === contentSeries.name));
-      if (chartSeriesArray.length > 0) return;
-      chart.addSeries(contentSeries, false);
+      if (!chartSeriesMap.hasOwnProperty(contentSeries.name)) {
+        chart.addSeries(contentSeries, false);
+      }
     });
 
+
     // reset navigator data
-    if (chart.xAxis.length > 0) chart.xAxis[0].setExtremes();
+    if (isStockChart && chart.xAxis.length) {
+      chart.xAxis[0].setExtremes();
+    }
 
     return chart.redraw();
   },
