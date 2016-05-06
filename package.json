@@ -41,7 +41,7 @@
     "ember-load-initializers": "^0.5.1",
     "ember-resolver": "^2.0.3",
     "ember-try": "~0.1.2",
-    "highcharts": "AO16/highcharts#b4b6d290abc",
+    "highcharts": "AO16/highcharts#bcb447ca38a0b075e6678d34fd424f8f4dd42715",
     "loader.js": "^4.0.1"
   },
   "keywords": [
